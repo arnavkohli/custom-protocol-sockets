@@ -1,6 +1,9 @@
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
-import time, hashlib
+import time, hashlib, binascii
+
+def validate_username(username, db):
+	return username in db
 
 def get_value_off_header(key, header):
 	return header.split(f"{key}=")[-1].split(";")[0]
@@ -23,19 +26,20 @@ def validate_payload(payload):
 	return hash(payload) == h_payload
 
 def data_encrypt(text, key):
-	cipher = AES.new(key, AES.MODE_ECB)
-	return cipher.encrypt(pad(text, 16))
+	cipher = AES.new(key.encode(), AES.MODE_ECB)
+	return binascii.hexlify(cipher.encrypt(pad(text.encode(), 16))).decode()
 
 def data_decrypt(text, key):
-	decipher = AES.new(key, AES.MODE_ECB)
-	return unpad(decipher.decrypt(text), 16)
+	decipher = AES.new(key.encode(), AES.MODE_ECB)
+	return unpad(decipher.decrypt(binascii.unhexlify(text)), 16).decode()
 
 def validate_time_stamp(ts):
 	current = int(time.time())
-	if ts <= current + 90:
+	if current <= ts + 90:
 		return True
 	return False
 
+# x------x Reference x------x
 
 def DataEnc(PText, K):
 	cipher = AES.new(K, AES.MODE_ECB)
@@ -52,7 +56,7 @@ def VerifyUserCreds(username, pwd, db):
 
 def isTimeAcceptable(TS):
 	current = int(time.time())
-	if TS <= current + 90:
+	if TS <=  + 90:
 		return True
 	return False
 
